@@ -10,21 +10,20 @@ function downloadTestVideoToServer(res) {
     var path = require('path');
     var fs = require('fs');
     var youtubedl = require('youtube-dl');
-    var video = youtubedl('https://www.youtube.com/watch?v=7qFF2v8VsbA');
+    var video = youtubedl('5LG2Ar2ny0M');
+
+
+    video.on('error', function (error) {
+        res.status(500).send(error.message);
+    });
 
     video.on('info', function (info) {
-        // TODO find a way to get error
         console.log('Download started');
         console.log('filename: ' + info.filename);
         console.log('size; ' + info.size);
-        var output = path.join('data', 'videos', info.id + '.mp4');
+        var output = path.join('data', 'videos', info.filename + '.mp4');
         video.pipe(fs.createWriteStream(output));
-        // TODO proper error handling
-        if (res.statusCode === 200) {
-            res.send(info.filename);
-        } else {
-            res.send(res.statusCode);
-        }
+        res.send(info.filename);
     });
 }
 
