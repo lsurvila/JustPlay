@@ -10,6 +10,8 @@ var users = require('./routes/users');
 var video = require('./routes/video');
 
 var app = express();
+var server = app.listen(3001);
+var io = require('socket.io').listen(server);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -58,5 +60,18 @@ app.use(function (err, req, res, next) {
     });
 });
 
+
+io.on('connection', function(socket) {
+    console.log('user connected');
+    socket.on('download_to_server', function(msg) {
+        video.downloadToServer(function(res) {
+            if (res === 400) {
+                io.emit('download_failed', 'Error: video download failed.');
+            } else {
+                io.emit('download_success', 'Success: video ' + res + ' downloaded.');
+            }
+        });
+    });
+});
 
 module.exports = app;
