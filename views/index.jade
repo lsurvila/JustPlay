@@ -10,12 +10,17 @@ block content
     script.
         var socket = io();
         $('#buttonDownloadServer').on('click', downloadVideoServer);
+        $('#buttonDownloadClient').on('click', downloadVideoClient);
 
         socket.on('download_failed', showAlert);
         socket.on('download_success', showAlert);
 
         function downloadVideoServer() {
             socket.emit('download_to_server', 'test');
+        }
+
+        function downloadVideoClient() {
+            socket.emit('download_to_client', 'test');
         }
 
         function showAlert(msg) {

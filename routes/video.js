@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
 
+// TODO test later
 router.get('/download-to-server', function(req, res) {
-    downloadToServer(function(result) {
+    downloadVideo(function(result) {
         if (result === 400) {
             res.status(result).send('error');
         } else {
@@ -34,14 +35,14 @@ router.get('/download-to-client', function(req, res) {
     });
 });
 
-function downloadToServer(cb) {
+function downloadVideo(cb) {
     var path = require('path');
     var fs = require('fs');
     var youtubedl = require('youtube-dl');
     var video = youtubedl('5LG2Ar2ny0M');
 
     video.on('error', function(error) {
-        cb(400);
+        cb(400, undefined, undefined);
     });
 
     video.on('info', function (info) {
@@ -50,9 +51,9 @@ function downloadToServer(cb) {
         console.log('size; ' + info.size);
         var output = path.join('data', 'videos', info.filename + '.mp4');
         video.pipe(fs.createWriteStream(output));
-        cb(info.filename);
+        cb(200, output, info.filename);
     });
 }
 
 module.exports = router;
-module.exports.downloadToServer = downloadToServer;
+module.exports.downloadVideo = downloadVideo;
