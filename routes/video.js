@@ -12,6 +12,7 @@ router.get('/download-to-server', function(req, res) {
     });
 });
 
+// TODO test later
 router.get('/download-to-client', function(req, res) {
     var path = require('path');
     var fs = require('fs');
@@ -49,7 +50,7 @@ function downloadVideo(cb) {
         console.log('Download started');
         console.log('filename: ' + info.filename);
         console.log('size; ' + info.size);
-        var output = path.join('data', 'videos', info.filename + '.mp4');
+        var output = path.join('public', info.filename);
         video.pipe(fs.createWriteStream(output));
         cb(200, output, info.filename);
     });
