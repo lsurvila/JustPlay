@@ -12,7 +12,6 @@ var video = require('./routes/video');
 var app = express();
 var server = app.listen(3001);
 var io = require('socket.io').listen(server);
-var dl = require('delivery');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -64,57 +63,6 @@ app.use(function (err, req, res, next) {
 
 io.on('connection', function(socket) {
     console.log('user connected');
-
-    socket.on('download_to_server', downloadToServer);
-    socket.on('download_to_client', function(videoId) {
-        downloadToClient(videoId, socket)
-    });
-
 });
-
-function downloadToServer(videoId) {
-    video.downloadVideo(function(statusCode, path, fileName) {
-        if (statusCode === 400) {
-            io.emit('download_failed', 'Error: video download failed.');
-        } else {
-            io.emit('download_success', 'Success: video ' + fileName + ' downloaded.');
-        }
-    });
-}
-
-function downloadToClient(videoId, socket) {
-    video.downloadVideo(function(statusCode, path, fileName) {
-        if (statusCode == 200) {
-            socket.emit('download_to_client_success', fileName);
-        }
-    });
-
-
-    //video.downloadVideo(function(statusCode, path, fileName) {
-    //    //var http = require('http');
-    //    //var fs = require('fs');
-    //    //
-    //    //var file = fs.createWriteStream("file.jpg");
-    //    //socket.sendFile(file);
-    //    console.log('downloadToClient ' + path + " " + fileName);
-    //    app.get(path, function(req, res) {
-    //        res.download(path);
-    //    });
-    //});
-
-
-
-    //var delivery = dl.listen(socket);
-    //delivery.on('delivery.connect', function(delivery) {
-    //    video.downloadVideo(function(statusCode, path, fileName) {
-    //        if (statusCode === 200) {
-    //            delivery.send({
-    //                name: fileName,
-    //                path: path
-    //            });
-    //        }
-    //    });
-    //});
-}
 
 module.exports = app;

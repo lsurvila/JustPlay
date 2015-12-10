@@ -1,38 +1,21 @@
 var express = require('express');
 var router = express.Router();
 
-// TODO test later
 router.get('/download-to-server', function(req, res) {
-    downloadVideo(function(result) {
-        if (result === 400) {
-            res.status(result).send('error');
-        } else {
-            res.send(result);
-        }
+    downloadVideo(function(status, path) {
+        res.sendStatus(status);
     });
 });
 
-// TODO test later
 router.get('/download-to-client', function(req, res) {
-    var path = require('path');
-    var fs = require('fs');
-    var youtubedl = require('youtube-dl');
-    var video = youtubedl('5LG2Ar2ny0M');
-
-
-    video.on('error', function (error) {
-        res.status(400).send(error.message);
-    });
-
-    video.on('info', function (info) {
-        console.log('Download started');
-        console.log('filename: ' + info.filename);
-        console.log('size; ' + info.size);
-        var output = path.join('data', 'videos', info.filename + '.mp4');
-        video.pipe(fs.createWriteStream(output));
-        console.log('sending file');
-        res.download('/Users/liudassurvila/Documents/WebStormProjects/JustPlay/' + output);
-        console.log('send file complete');
+    downloadVideo(function(status, serverFileName, clientFileName) {
+        if (status == 200) {
+            // TODO spaces in filename -> fail
+            // TODO non-hardcoded directory
+            // TODO send status
+            res.download('/Users/liudassurvila/Documents/WebStormProjects/JustPlay/' + 'data/videos/' + serverFileName, clientFileName);
+        }
+        //res.sendStatus(status);
     });
 });
 
@@ -40,21 +23,27 @@ function downloadVideo(cb) {
     var path = require('path');
     var fs = require('fs');
     var youtubedl = require('youtube-dl');
-    var video = youtubedl('5LG2Ar2ny0M');
-
-    video.on('error', function(error) {
-        cb(400, undefined, undefined);
-    });
+    var video = youtubedl('YnPKmZ7-m-A');
 
     video.on('info', function (info) {
-        console.log('Download started');
-        console.log('filename: ' + info.filename);
-        console.log('size; ' + info.size);
-        var output = path.join('public', info.filename);
-        video.pipe(fs.createWriteStream(output));
-        cb(200, output, info.filename);
+        var serverFileName = info.id + '.' + info.ext;
+        var clientFileName = info.fulltitle + '.' + info.ext;
+        var output = path.join('data', 'videos', serverFileName);
+        var stream = video.pipe(fs.createWriteStream(output));
+        stream.on('finish', function() {
+            cb(200, serverFileName, clientFileName);
+        });
+        stream.on('error', function() {
+            cb(400)
+        });
+
     });
+
+    video.on('error', function(error) {
+        console.log('video download error: ' + error);
+        cb(400);
+    });
+
 }
 
 module.exports = router;
-module.exports.downloadVideo = downloadVideo;
