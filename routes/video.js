@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
+var path = require('path');
 
 router.get('/download-to-server', function(req, res) {
-    downloadVideo(function(status, path) {
+    downloadVideo(function(status, serverFileName, clientFileName) {
         res.sendStatus(status);
     });
 });
@@ -10,17 +11,17 @@ router.get('/download-to-server', function(req, res) {
 router.get('/download-to-client', function(req, res) {
     downloadVideo(function(status, serverFileName, clientFileName) {
         if (status == 200) {
-            // TODO spaces in filename -> fail
-            // TODO non-hardcoded directory
             // TODO send status
-            res.download('/Users/liudassurvila/Documents/WebStormProjects/JustPlay/' + 'data/videos/' + serverFileName, clientFileName);
+            res.sendStatus(status).download(path.join(global.appRoot, 'data', 'videos', serverFileName), clientFileName);
+        } else {
+            // sends status only if failed
+            res.sendStatus(status);
         }
-        //res.sendStatus(status);
     });
 });
 
 function downloadVideo(cb) {
-    var path = require('path');
+
     var fs = require('fs');
     var youtubedl = require('youtube-dl');
     var video = youtubedl('YnPKmZ7-m-A');
