@@ -13,7 +13,7 @@ var app = express();
 var server = app.listen(3001);
 var io = require('socket.io').listen(server);
 
-§global.appRoot = path.resolve(__dirname);
+global.appRoot = path.resolve(__dirname);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

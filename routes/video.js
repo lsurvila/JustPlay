@@ -2,17 +2,11 @@ var express = require('express');
 var router = express.Router();
 var path = require('path');
 
-router.get('/download-to-server', function(req, res) {
-    downloadVideo(function(status, serverFileName, clientFileName) {
-        res.sendStatus(status);
-    });
-});
-
-router.get('/download-to-client', function(req, res) {
-    downloadVideo(function(status, serverFileName, clientFileName) {
+router.get('/download', function(req, res) {
+    var videoId = req.query['id'];
+    downloadVideo(videoId, function(status, output, clientFileName) {
         if (status == 200) {
-            // TODO send status
-            res.sendStatus(status).download(path.join(global.appRoot, 'data', 'videos', serverFileName), clientFileName);
+            res.download(path.join(global.appRoot, output), clientFileName);
         } else {
             // sends status only if failed
             res.sendStatus(status);
@@ -20,19 +14,19 @@ router.get('/download-to-client', function(req, res) {
     });
 });
 
-function downloadVideo(cb) {
+function downloadVideo(videoId, cb) {
 
     var fs = require('fs');
     var youtubedl = require('youtube-dl');
-    var video = youtubedl('YnPKmZ7-m-A');
+    var video = youtubedl(videoId);
 
     video.on('info', function (info) {
         var serverFileName = info.id + '.' + info.ext;
-        var clientFileName = info.fulltitle + '.' + info.ext;
+        var clientFileName = info.fulltitle.replace('/', '|') + '.' + info.ext;
         var output = path.join('data', 'videos', serverFileName);
         var stream = video.pipe(fs.createWriteStream(output));
         stream.on('finish', function() {
-            cb(200, serverFileName, clientFileName);
+            cb(200, output, clientFileName);
         });
         stream.on('error', function() {
             cb(400)
