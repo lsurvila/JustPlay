@@ -1,22 +1,59 @@
 var express = require('express');
 var router = express.Router();
 var path = require('path');
+var fs = require('fs');
+var youtube = require('youtube-api');
+var jsonTransform = require("node-json-transform").DataTransform;
+youtube.authenticate(JSON.parse(fs.readFileSync('api_key.json', 'utf8')));
 
 router.get('/download', function(req, res) {
     var videoId = req.query['id'];
     downloadVideo(videoId, function(status, output, clientFileName) {
-        if (status == 200) {
-            res.download(path.join(global.appRoot, output), clientFileName);
+        if (status === 200) {
+            res.status(status).download(path.join(global.appRoot, output), clientFileName);
         } else {
-            // sends status only if failed
-            res.sendStatus(status);
+            res.status(status).send(output);
         }
     });
 });
 
-function downloadVideo(videoId, cb) {
+router.get('/search', function(req, res) {
+    var query = req.query['q'];
+    searchVideos(query, function(status, result) {
+        res.status(status).send(result);
+    });
+});
 
-    var fs = require('fs');
+function searchVideos(query, cb) {
+    var request = {
+        part: 'snippet',
+        q: query,
+        maxResults: 50,
+        type: 'video',
+        fields: 'items',
+        videoCategoryId: 10
+    };
+    youtube.search.list(request, function(err, data) {
+        if (err === null) {
+            var map = {
+                list : 'items',
+                item : {
+                    id : "id.videoId",
+                    title : "snippet.title",
+                    imageUrl : "snippet.thumbnails.high.url"
+                }
+            };
+            var dataTransform = jsonTransform(data, map);
+            var result = dataTransform.transform();
+            cb(200, result);
+        } else {
+            cb(err.code, err);
+        }
+    });
+}
+
+
+function downloadVideo(videoId, cb) {
     var youtubedl = require('youtube-dl');
     var video = youtubedl(videoId);
 
@@ -28,15 +65,15 @@ function downloadVideo(videoId, cb) {
         stream.on('finish', function() {
             cb(200, output, clientFileName);
         });
-        stream.on('error', function() {
-            cb(400)
+        stream.on('error', function(error) {
+            cb(500, error)
         });
 
     });
 
     video.on('error', function(error) {
         console.log('video download error: ' + error);
-        cb(400);
+        cb(400, error);
     });
 
 }
