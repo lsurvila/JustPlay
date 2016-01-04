@@ -8,11 +8,19 @@ youtube.authenticate(JSON.parse(fs.readFileSync('api_key.json', 'utf8')));
 
 router.get('/download', function(req, res) {
     var videoId = req.query['id'];
-    downloadVideo(videoId, function(status, output, clientFileName) {
+    var writeToDisk = parseInt(req.query['writeToDisk']);
+    downloadVideo(videoId, writeToDisk, function(status, video, fileLocation, clientFileName, extension, error) {
         if (status === 200) {
-            res.status(status).download(path.join(global.appRoot, output), clientFileName);
-        } else {
-            res.status(status).send(output);
+            if (writeToDisk === 1) {
+                res.status(status).download(path.join(global.appRoot, fileLocation), clientFileName + "." + extension);
+            } else {
+                res.status(status);
+                res.setHeader('Content-Disposition', 'attachment; filename=' + clientFileName + "." + extension);
+                res.setHeader('Content-Type', 'audio/' + extension);
+                video.pipe(res);
+            }
+        } else if (error.code !== 'ECONNRESET') {
+            res.status(status).send(error);
         }
     });
 });
@@ -53,27 +61,29 @@ function searchVideos(query, cb) {
 }
 
 
-function downloadVideo(videoId, cb) {
+function downloadVideo(videoId, writeToDisk, cb) {
     var youtubedl = require('youtube-dl');
     var video = youtubedl(videoId, ['-f bestaudio']);
 
     video.on('info', function (info) {
-        var serverFileName = info.id + '.' + info.ext;
-        var clientFileName = info.fulltitle.replace('/', '|') + '.' + info.ext;
-        var output = path.join('data', 'videos', serverFileName);
-        var stream = video.pipe(fs.createWriteStream(output));
-        stream.on('finish', function() {
-            cb(200, output, clientFileName);
-        });
-        stream.on('error', function(error) {
-            cb(500, error)
-        });
-
+        var clientFileName = info.fulltitle.replace('/', '|');
+        if (writeToDisk === 1) {
+            var output = path.join('data', 'videos', info.id + '.' + info.ext);
+            var fileStream = video.pipe(fs.createWriteStream(output));
+            fileStream.on('finish', function() {
+                cb(200, null, output, clientFileName, info.ext, null);
+            });
+            fileStream.on('error', function() {
+                cb(500, null, null, null, null, error);
+            });
+        } else {
+            cb(200, video, null, clientFileName, info.ext, null);
+        }
     });
 
     video.on('error', function(error) {
         console.log('video download error: ' + error);
-        cb(400, error);
+        cb(400, null, null, null, null, error);
     });
 
 }
