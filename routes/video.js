@@ -55,7 +55,7 @@ function searchVideos(query, cb) {
 
 function downloadVideo(videoId, cb) {
     var youtubedl = require('youtube-dl');
-    var video = youtubedl(videoId);
+    var video = youtubedl(videoId, ['-f bestaudio']);
 
     video.on('info', function (info) {
         var serverFileName = info.id + '.' + info.ext;
