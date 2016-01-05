@@ -7,7 +7,7 @@ var jsonTransform = require("node-json-transform").DataTransform;
 youtube.authenticate(
     {
         'type': 'key',
-        'key': YOUTUBE_API_KEY
+        'key': process.env.YOUTUBE_API_KEY
     }
 );
 
