@@ -9,8 +9,6 @@ var users = require('./routes/users');
 var video = require('./routes/video');
 
 var app = express();
-var server = app.listen(3001);
-var io = require('socket.io').listen(server);
 
 global.appRoot = path.resolve(__dirname);
 
@@ -58,11 +56,6 @@ app.use(function (err, req, res, next) {
         message: err.message,
         error: {}
     });
-});
-
-
-io.on('connection', function(socket) {
-    console.log('user connected');
 });
 
 module.exports = app;
