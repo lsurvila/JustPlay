@@ -4,7 +4,12 @@ var path = require('path');
 var fs = require('fs');
 var youtube = require('youtube-api');
 var jsonTransform = require("node-json-transform").DataTransform;
-youtube.authenticate(JSON.parse(fs.readFileSync('api_key.json', 'utf8')));
+youtube.authenticate(
+    {
+        'type': 'key',
+        'key': YOUTUBE_API_KEY
+    }
+);
 
 router.get('/download', function(req, res) {
     var videoId = req.query['id'];
