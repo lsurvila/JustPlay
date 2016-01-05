@@ -105,5 +105,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Don't commmit api keys
-api_key.json
+# Don't commmit env vars
+.env
