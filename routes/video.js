@@ -41,7 +41,7 @@ function searchVideos(query, cb) {
     var request = {
         part: 'snippet',
         q: query,
-        maxResults: 10,
+        maxResults: 50,
         type: 'video',
         fields: 'items',
         videoCategoryId: 10
