@@ -20,7 +20,7 @@ router.get('/download', function(req, res) {
                 res.status(status).download(path.join(global.appRoot, fileLocation), clientFileName + "." + extension);
             } else {
                 res.status(status);
-                res.setHeader('Content-Disposition', 'attachment; filename=' + clientFileName + "." + extension);
+                res.setHeader('Content-Disposition', 'attachment; filename=\"' + clientFileName + "." + extension.toUpperCase() + '\"');
                 res.setHeader('Content-Type', 'audio/' + extension);
                 video.pipe(res);
             }
