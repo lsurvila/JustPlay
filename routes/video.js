@@ -44,7 +44,8 @@ function searchVideos(query, cb) {
         maxResults: 50,
         type: 'video',
         fields: 'items',
-        videoCategoryId: 10
+        videoCategoryId: 10,
+        videoDuration: 'medium'
     };
     youtube.search.list(request, function(err, data) {
         if (err === null) {
